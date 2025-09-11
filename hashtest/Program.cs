@@ -3,31 +3,40 @@ using HashDepot;
 using Standart.Hash.xxHash;
 using System.Diagnostics;
 using System.Text;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Jobs;
 
 
 namespace hashtest
 {
     internal class Program
     {
-        static string text = "veni vidi vici";
-        static byte[] data = Encoding.UTF8.GetBytes(text);
-
         static void Main(string[] args)
         {
-            XXHashTest();
-            Blake2Test();
-            SipHashTest();
+            var summary = BenchmarkRunner.Run<Benchmarks>();
+            summary = BenchmarkRunner.Run<Benchmarks>(new BenchmarkDotNet.Configs.ManualConfig()
+                .WithOptions(BenchmarkDotNet.Configs.ConfigOptions.DisableOptimizationsValidator)
+                .AddJob(Job.Default
+                .WithWarmupCount(3)
+                .WithIterationCount(10)
+                .WithInvocationCount(1)
+                .WithUnrollFactor(1)
+                .WithId("CustomJob")));
+            //XXHashTest();
+            //Blake2Test();
+            //SipHashTest();
         }
 
         static async void XXHashTest()
         {
             Stopwatch sw = new Stopwatch();
-            ulong h64_1 = xxHash64.ComputeHash(data, data.Length);
-            ulong h64_2 = xxHash64.ComputeHash(new Span<byte>(data), data.Length);
-            ulong h64_3 = xxHash64.ComputeHash(new ReadOnlySpan<byte>(data), data.Length);
-            ulong h64_4 = xxHash64.ComputeHash(new MemoryStream(data));
-            ulong h64_5 = await xxHash64.ComputeHashAsync(new MemoryStream(data));
-            ulong h64_6 = xxHash64.ComputeHash(text);
+            ulong h64_1 = xxHash64.ComputeHash(Benchmarks.data, Benchmarks.data.Length);
+            ulong h64_2 = xxHash64.ComputeHash(new Span<byte>(Benchmarks.data), Benchmarks.data.Length);
+            ulong h64_3 = xxHash64.ComputeHash(new ReadOnlySpan<byte>(Benchmarks.data), Benchmarks.data.Length);
+            ulong h64_4 = xxHash64.ComputeHash(new MemoryStream(Benchmarks.data));
+            ulong h64_5 = await xxHash64.ComputeHashAsync(new MemoryStream(Benchmarks.data));
+            ulong h64_6 = xxHash64.ComputeHash(Benchmarks.text);
             sw.Stop();
             Console.WriteLine($"xxHash64:");
             Console.WriteLine($"h64_1 = 0x{h64_1:X16}");
@@ -42,12 +51,12 @@ namespace hashtest
             Console.WriteLine();
 
             sw.Restart();
-            uint h32_1 = xxHash32.ComputeHash(data, data.Length);
-            uint h32_2 = xxHash32.ComputeHash(new Span<byte>(data), data.Length);
-            uint h32_3 = xxHash32.ComputeHash(new ReadOnlySpan<byte>(data), data.Length);
-            uint h32_4 = xxHash32.ComputeHash(new MemoryStream(data));
-            uint h32_5 = await xxHash32.ComputeHashAsync(new MemoryStream(data));
-            uint h32_6 = xxHash32.ComputeHash(text);
+            uint h32_1 = xxHash32.ComputeHash(Benchmarks.data, Benchmarks.data.Length);
+            uint h32_2 = xxHash32.ComputeHash(new Span<byte>(Benchmarks.data), Benchmarks.data.Length);
+            uint h32_3 = xxHash32.ComputeHash(new ReadOnlySpan<byte>(Benchmarks.data), Benchmarks.data.Length);
+            uint h32_4 = xxHash32.ComputeHash(new MemoryStream(Benchmarks.data));
+            uint h32_5 = await xxHash32.ComputeHashAsync(new MemoryStream(Benchmarks.data));
+            uint h32_6 = xxHash32.ComputeHash(Benchmarks.text);
             sw.Stop();
             Console.WriteLine($"xxHash32:");
             Console.WriteLine($"h32_1 = 0x{h32_1:X8}");
@@ -61,10 +70,10 @@ namespace hashtest
             Console.WriteLine();
 
             sw.Restart();
-            ulong h3_1 = xxHash3.ComputeHash(data, data.Length);
-            ulong h3_2 = xxHash3.ComputeHash(new Span<byte>(data), data.Length);
-            ulong h3_3 = xxHash3.ComputeHash(new ReadOnlySpan<byte>(data), data.Length);
-            ulong h3_4 = xxHash3.ComputeHash(text);
+            ulong h3_1 = xxHash3.ComputeHash(Benchmarks.data, Benchmarks.data.Length);
+            ulong h3_2 = xxHash3.ComputeHash(new Span<byte>(Benchmarks.data), Benchmarks.data.Length);
+            ulong h3_3 = xxHash3.ComputeHash(new ReadOnlySpan<byte>(Benchmarks.data), Benchmarks.data.Length);
+            ulong h3_4 = xxHash3.ComputeHash(Benchmarks.text);
             sw.Stop();
             Console.WriteLine($"xxHash3 (64-bit):");
             Console.WriteLine($"h3_1 = 0x{h3_1:X16}");
@@ -76,10 +85,10 @@ namespace hashtest
             Console.WriteLine();
 
             sw.Restart();
-            uint128 h128_1 = xxHash128.ComputeHash(data, data.Length);
-            uint128 h128_2 = xxHash128.ComputeHash(new Span<byte>(data), data.Length);
-            uint128 h128_3 = xxHash128.ComputeHash(new ReadOnlySpan<byte>(data), data.Length);
-            uint128 h128_4 = xxHash128.ComputeHash(text);
+            uint128 h128_1 = xxHash128.ComputeHash(Benchmarks.data, Benchmarks.data.Length);
+            uint128 h128_2 = xxHash128.ComputeHash(new Span<byte>(Benchmarks.data), Benchmarks.data.Length);
+            uint128 h128_3 = xxHash128.ComputeHash(new ReadOnlySpan<byte>(Benchmarks.data), Benchmarks.data.Length);
+            uint128 h128_4 = xxHash128.ComputeHash(Benchmarks.text);
             sw.Stop();
             Console.WriteLine($"xxHash128:");
             Console.WriteLine($"h128_1 = {h128_1}");
@@ -101,10 +110,10 @@ namespace hashtest
             Console.WriteLine();
 
             sw.Restart();
-            byte[] hash_bytes_1 = xxHash128.ComputeHashBytes(data, data.Length);
-            byte[] hash_bytes_2 = xxHash128.ComputeHashBytes(new Span<byte>(data), data.Length);
-            byte[] hash_bytes_3 = xxHash128.ComputeHashBytes(new ReadOnlySpan<byte>(data), data.Length);
-            byte[] hash_bytes_4 = xxHash128.ComputeHashBytes(text);
+            byte[] hash_bytes_1 = xxHash128.ComputeHashBytes(Benchmarks.data, Benchmarks.data.Length);
+            byte[] hash_bytes_2 = xxHash128.ComputeHashBytes(new Span<byte>(Benchmarks.data), Benchmarks.data.Length);
+            byte[] hash_bytes_3 = xxHash128.ComputeHashBytes(new ReadOnlySpan<byte>(Benchmarks.data), Benchmarks.data.Length);
+            byte[] hash_bytes_4 = xxHash128.ComputeHashBytes(Benchmarks.text);
             sw.Stop();
             Console.WriteLine($"HashBytes:");
             Console.WriteLine($"hash_bytes_1 = {BitConverter.ToString(hash_bytes_1)}");
@@ -121,9 +130,9 @@ namespace hashtest
             Console.WriteLine("BLAKE2Fast test");
             Stopwatch sw = new Stopwatch();
             sw.Restart();
-            byte[] blake2b_1 = Blake2b.ComputeHash(data);
-            byte[] blake2b_2 = Blake2b.ComputeHash(new Span<byte>(data));
-            byte[] blake2b_3 = Blake2b.ComputeHash(new ReadOnlySpan<byte>(data));
+            byte[] blake2b_1 = Blake2b.ComputeHash(Benchmarks.data);
+            byte[] blake2b_2 = Blake2b.ComputeHash(new Span<byte>(Benchmarks.data));
+            byte[] blake2b_3 = Blake2b.ComputeHash(new ReadOnlySpan<byte>(Benchmarks.data));
             byte[] blake2b_4 = Blake2b.ComputeHash(Encoding.ASCII.GetBytes("veni vidi vici"));
             sw.Stop();
             Console.WriteLine($"Blake2B:");
@@ -141,7 +150,7 @@ namespace hashtest
             Console.WriteLine("SipHash test");
             sw.Restart();
             var key = new byte[16] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F };
-            ulong result = SipHash24.Hash64(data, key);
+            ulong result = SipHash24.Hash64(Benchmarks.data, key);
             sw.Stop();
             Console.WriteLine($"SipHash-2-4: 0x{result:X16}");
             Console.WriteLine($"Elapsed time: {sw.Elapsed.TotalMilliseconds} ms\n");
